@@ -699,11 +699,13 @@ module Keycloak
       secret = Keycloak::Client.secret if isempty?(secret)
 
       proc = lambda { |token|
+
         if user_login.index('@').nil?
           search = {:username => user_login}
         else
           search = {:email => user_login}
         end
+
 
         users = JSON Keycloak.generic_request(token["access_token"],
                                               Keycloak::Admin.full_url("users/"),
@@ -774,7 +776,6 @@ module Keycloak
       rescue
         raise
       end
-binding.pry
       proc_default = lambda { |token|
         user_representation = { username: username,
                                 email: email,
@@ -802,6 +803,7 @@ binding.pry
 
             if client_roles_names.count > 0
               roles = []
+
               client_roles_names.each do |r|
                 unless isempty?(r)
                   role = JSON Keycloak.generic_request(token["access_token"],
@@ -842,7 +844,7 @@ binding.pry
       }
 
       if default_call(proc_default, client_id, secret)
-        proc.call user unless proc.nil?
+        proc.call user, new_user unless proc.nil?
       end
     end
 
@@ -942,7 +944,6 @@ binding.pry
                 end
               }
             end
-            binding.pry
             Keycloak::Client.exec_request _request
           end
         end
