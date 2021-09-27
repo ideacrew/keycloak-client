@@ -158,8 +158,7 @@ module Keycloak
       client_id = @client_id if isempty?(client_id)
       secret = @secret if isempty?(secret)
       token = self.token['access_token'] if isempty?(token)
-      token_introspection_endpoint = @configuration['token_introspection_endpoint'] if isempty?(token_introspection_endpoint)
-
+      token_introspection_endpoint = (@configuration['introspection_endpoint'] || @configuration['token_introspection_endpoint']) if isempty?(token_introspection_endpoint)
       payload = { 'token' => token }
 
       authorization = Base64.strict_encode64("#{client_id}:#{secret}")
@@ -266,7 +265,7 @@ module Keycloak
 
       client_id = @client_id if isempty?(client_id)
       secret = @secret if isempty?(secret)
-      token_introspection_endpoint = @configuration['token_introspection_endpoint'] if isempty?(token_introspection_endpoint)
+      token_introspection_endpoint = (@configuration['introspection_endpoint'] || @configuration['token_introspection_endpoint']) if isempty?(token_introspection_endpoint)
 
       if !Keycloak.validate_token_when_call_has_role || user_signed_in?(access_token, client_id, secret, token_introspection_endpoint)
         dt = decoded_access_token(access_token)[0]
@@ -285,7 +284,7 @@ module Keycloak
 
       client_id = @client_id if isempty?(client_id)
       secret = @secret if isempty?(secret)
-      token_introspection_endpoint = @configuration['token_introspection_endpoint'] if isempty?(token_introspection_endpoint)
+      token_introspection_endpoint = (@configuration['introspection_endpoint'] || @configuration['token_introspection_endpoint']) if isempty?(token_introspection_endpoint)
 
       begin
         JSON(get_token_introspection(access_token, client_id, secret, token_introspection_endpoint))['active'] === true
@@ -379,7 +378,7 @@ module Keycloak
 
       def self.openid_configuration
         RestClient.proxy = Keycloak.proxy unless isempty?(Keycloak.proxy)
-        config_url = "#{@auth_server_url}/realms/#{@realm}/.well-known/openid-configuration"
+        config_url = "#{@auth_server_url.chomp('/')}/realms/#{@realm}/.well-known/openid-configuration"
         _request = -> do
           RestClient.get config_url
         end
@@ -705,10 +704,11 @@ module Keycloak
         else
           search = {:email => user_login}
         end
+
         users = JSON Keycloak.generic_request(token["access_token"],
                                               Keycloak::Admin.full_url("users/"),
                                               search, nil, 'GET')
-        users[0]
+
         if users.count.zero?
           raise Keycloak::UserLoginNotFound
         else
@@ -764,8 +764,9 @@ module Keycloak
       client_id = Keycloak::Client.client_id if isempty?(client_id)
       secret = Keycloak::Client.secret if isempty?(secret)
 
+      username = username.dup.downcase unless isempty?(username)
+
       begin
-        username.downcase!
         user = get_user_info(username, true, client_id, secret)
         new_user = false
       rescue Keycloak::UserLoginNotFound
@@ -773,7 +774,7 @@ module Keycloak
       rescue
         raise
       end
-
+binding.pry
       proc_default = lambda { |token|
         user_representation = { username: username,
                                 email: email,
@@ -941,6 +942,7 @@ module Keycloak
                 end
               }
             end
+            binding.pry
             Keycloak::Client.exec_request _request
           end
         end
@@ -951,7 +953,7 @@ module Keycloak
 
     def self.generic_request(access_token, uri, query_parameters, body_parameter, method)
       Keycloak::Client.verify_setup
-      final_url = uri
+      final_url = uri.chomp('/')
 
       header = {'Content-Type' => 'application/x-www-form-urlencoded',
                 'Authorization' => "Bearer #{access_token}"}
