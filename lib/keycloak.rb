@@ -776,6 +776,7 @@ module Keycloak
       rescue
         raise
       end
+
       proc_default = lambda { |token|
         user_representation = { username: username,
                                 email: email,
