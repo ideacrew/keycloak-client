@@ -774,7 +774,7 @@ module Keycloak
       rescue
         raise
       end
-binding.pry
+
       proc_default = lambda { |token|
         user_representation = { username: username,
                                 email: email,
@@ -842,7 +842,7 @@ binding.pry
       }
 
       if default_call(proc_default, client_id, secret)
-        proc.call user unless proc.nil?
+        proc.call user, new_user unless proc.nil?
       end
     end
 
@@ -942,7 +942,6 @@ binding.pry
                 end
               }
             end
-            binding.pry
             Keycloak::Client.exec_request _request
           end
         end
