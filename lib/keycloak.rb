@@ -657,6 +657,21 @@ module Keycloak
       default_call(proc, client_id, secret)
     end
 
+    def self.disable_user(user_id, redirect_uri = '', client_id = '', secret = '')
+      client_id = Keycloak::Client.client_id if isempty?(client_id)
+      secret = Keycloak::Client.secret if isempty?(secret)
+
+      proc = lambda {|token|
+        Keycloak.generic_request(token['access_token'],
+                                 Keycloak::Admin.full_url("users/#{user_id}"),
+                                 nil,
+                                 {enabled: false},
+                                 'PUT')
+      }
+
+      default_call(proc, client_id, secret)
+    end
+
     def self.change_password(user_id, redirect_uri = '', client_id = '', secret = '')
       client_id = Keycloak::Client.client_id if isempty?(client_id)
       secret = Keycloak::Client.secret if isempty?(secret)
@@ -675,7 +690,6 @@ module Keycloak
     def self.forgot_password(user_login, redirect_uri = '', client_id = '', secret = '')
       client_id = Keycloak::Client.client_id if isempty?(client_id)
       secret = Keycloak::Client.secret if isempty?(secret)
-
       user = get_user_info(user_login, true, client_id, secret)
       change_password(user['id'], redirect_uri, client_id, secret)
     end
@@ -710,7 +724,6 @@ module Keycloak
         users = JSON Keycloak.generic_request(token["access_token"],
                                               Keycloak::Admin.full_url("users/"),
                                               search, nil, 'GET')
-
         if users.count.zero?
           raise Keycloak::UserLoginNotFound
         else
@@ -926,7 +939,6 @@ module Keycloak
               end
             }
           end
-
           Keycloak::Client.exec_request _request
         ensure
           if tk
@@ -945,7 +957,7 @@ module Keycloak
                 end
               }
             end
-            Keycloak::Client.exec_request _request
+            # Keycloak::Client.exec_request _request
           end
         end
       end
@@ -964,6 +976,7 @@ module Keycloak
         parameters = URI.encode_www_form(query_parameters)
         final_url = final_url << '?' << parameters
       end
+
 
       case method.upcase
       when 'GET'
