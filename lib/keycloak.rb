@@ -657,6 +657,15 @@ module Keycloak
       default_call(proc, client_id, secret)
     end
 
+    def self.delete_user_by_login(user_login, redirect_uri = '', client_id = '', secret = '')
+      client_id = Keycloak::Client.client_id if isempty?(client_id)
+      secret = Keycloak::Client.secret if isempty?(secret)
+      user = get_user_info(user_login, true, client_id, secret)
+
+      Keycloak::Admin.delete_user(user['id'])
+    end
+
+
     def self.disable_user_by_login(user_login, redirect_uri = '', client_id = '', secret = '')
       client_id = Keycloak::Client.client_id if isempty?(client_id)
       secret = Keycloak::Client.secret if isempty?(secret)
