@@ -815,7 +815,7 @@ module Keycloak
       info['federationLink'] != nil
     end
 
-    def self.create_simple_user(username, password, email, first_name, last_name, realm_roles_names, client_roles_names, proc = nil, client_id = '', secret = '')
+    def self.create_simple_user(username, password, email, first_name, last_name, realm_roles_names, client_roles_names,  attributes = {}, proc = nil, client_id = '', secret = '')
       client_id = Keycloak::Client.client_id if isempty?(client_id)
       secret = Keycloak::Client.secret if isempty?(secret)
 
@@ -835,6 +835,7 @@ module Keycloak
                                 email: email,
                                 firstName: first_name,
                                 lastName: last_name,
+                                attributes: attributes,
                                 enabled: true }
 
         if !new_user || Keycloak.generic_request(token["access_token"],
