@@ -430,6 +430,10 @@ module Keycloak
       generic_get("groups/#{id}/members", query_parameters, access_token)
     end
 
+    def self.add_user_to_group(user_id, group_id, query_parameters = nil, access_token = nil)
+      generic_put("users/#{user_id}/groups/#{group_id}", query_parameters, access_token)
+    end
+
     def self.create_user(user_representation, access_token = nil)
       generic_post("users/", nil, user_representation, access_token)
     end
