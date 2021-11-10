@@ -434,6 +434,10 @@ module Keycloak
       generic_put("users/#{user_id}/groups/#{group_id}", query_parameters, access_token)
     end
 
+    def self.add_user_to_roles(user_id, roles, query_parameters = nil, access_token = nil)
+      generic_post("users/#{user_id}/role-mappings/realm", query_parameters, roles, access_token)
+    end
+
     def self.create_user(user_representation, access_token = nil)
       generic_post("users/", nil, user_representation, access_token)
     end
@@ -470,6 +474,10 @@ module Keycloak
 
     def self.get_groups(query_parameters = nil, access_token = nil)
       generic_get("groups/", query_parameters, access_token)
+    end
+
+    def self.get_roles(query_parameters = nil, access_token = nil)
+      generic_get("roles/", query_parameters, access_token)
     end
 
     def self.get_users_by_role_name(role_name, query_parameters = nil, access_token = nil)
